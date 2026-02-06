@@ -5,44 +5,43 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         headers: { "Access-Control-Allow-Origin": event.headers.origin },
-        body: JSON.stringify({ success: false, message: "缺少key参数" })
+        body: JSON.stringify({ success: false, message: "缺少key参数（4位数字密码）" })
       };
     }
 
-    const apiUrl = `https://n.showmsg.cn/api/v1/memos/${key}`;
+    // 关键修正1：查询纸条的正确路径是 /view/{key}，而非/api/v1/memos/{key}
+    const apiUrl = `https://n.showmsg.cn/view/${key}`;
     const response = await fetch(apiUrl, {
       method: "GET",
+      // 关键修正2：对齐x1.js中的请求头，通过API的Referer/Origin验证
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": "https://n.showmsg.cn/" // 设置为目标API自身域名
+        "Content-Type": "application/json",
+        "Origin": "https://n.showmsg.cn",
+        "Referer": "https://n.showmsg.cn/create",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0"
       }
     });
 
+    // 先获取原始响应，避免非JSON解析报错
     const rawResponse = await response.text();
-    let data;
-    try {
-      data = JSON.parse(rawResponse);
-    } catch (parseError) {
-      return {
-        statusCode: response.status,
-        headers: { "Access-Control-Allow-Origin": event.headers.origin },
-        body: JSON.stringify({
-          success: false,
-          message: `目标API返回：${rawResponse}`
-        })
-      };
-    }
-
+    // 目标API的/view/{key}返回的是HTML页面（不是JSON），直接返回给前端
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": event.headers.origin },
-      body: JSON.stringify(data)
+      headers: { 
+        "Access-Control-Allow-Origin": event.headers.origin,
+        "Content-Type": "text/html; charset=utf-8" // 匹配响应格式
+      },
+      body: rawResponse
     };
+
   } catch (error) {
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": event.headers.origin },
-      body: JSON.stringify({ success: false, message: "代理请求失败：" + error.message })
+      body: JSON.stringify({ 
+        success: false, 
+        message: "代理请求失败：" + error.message 
+      })
     };
   }
 };
