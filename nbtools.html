@@ -3,63 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>私密纸条查看器</title>
+  <title>NB实验室 账户查询</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", sans-serif; }
     body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { width: 100%; max-width: 500px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
-    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 15px; font-weight: 600; }
-    .note-info {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 25px;
-      line-height: 1.8;
-    }
-    .note-info .expire-tip {
-      color: #f56c6c;
-      font-weight: 500;
-    }
+    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 25px; font-weight: 600; }
     .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
     #keyInput { flex: 1; height: 48px; padding: 0 15px; border: 1px solid #e1e5eb; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; }
     #keyInput:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,0.1); }
     #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
     #submitBtn:hover { background: #337ecc; }
     #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
-    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
+    #contentArea { min-height: 180px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
     .error { color: #f56c6c; }
     .loading { color: #888; }
-    .expired { color: #999; text-decoration: line-through; }
+    .label { color: #666; font-weight: 500; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>NoBook 账户查询</h1>
-    <!-- 动态信息展示区域 -->
-    <div class="note-info">
-      <p id="createTime">创建时间: 加载中...</p>
-      <p id="expireCountdown" class="expire-tip">该页面将会在 加载中... 后被销毁</p>
-    </div>
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
       <button id="submitBtn" onclick="getMemo()">确认查看</button>
     </div>
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
   </div>
-
   <script>
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
-    const createTimeEl = document.getElementById('createTime');
-    const expireCountdownEl = document.getElementById('expireCountdown');
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
-    const MEMO_API = 'https://n.showmsg.cn/api/v1/memos';
     let binId = '';
-    let countdownTimer = null; // 倒计时定时器
-
-    // 解析短地址参数
+    // 解析短地址参数（c=key_binId）- 核心修复
     const params = new URLSearchParams(window.location.search);
     const cParam = params.get('c');
     if (cParam) {
@@ -72,149 +50,47 @@
       }
       getMemo();
     }
-
-    /**
-     * 工具函数：ISO时间转北京时间（UTC+8）
-     * @param {string} isoTime - API返回的ISO格式时间（如2026-02-06T15:39:34.219Z）
-     * @returns {string} 格式化后的本地时间（2026-02-06 23:39:34）
-     */
-    function isoToBeijingTime(isoTime) {
-      const date = new Date(isoTime);
-      // UTC转北京时间：加8小时
-      date.setHours(date.getHours() + 8);
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }).replace(/\//g, '-');
-    }
-
-    /**
-     * 工具函数：计算剩余时间并格式化
-     * @param {string} expireIsoTime - API返回的过期ISO时间
-     * @returns {string} 剩余时间（如"21小时52分钟"）或"已过期"
-     */
-    function calculateRemainingTime(expireIsoTime) {
-      const now = new Date().getTime();
-      const expireTime = new Date(expireIsoTime).getTime();
-      const diff = expireTime - now;
-
-      if (diff <= 0) return '已过期';
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      return `${hours}小时${minutes}分钟`;
-    }
-
-    /**
-     * 实时更新倒计时
-     * @param {string} expireIsoTime - API返回的过期ISO时间
-     */
-    function updateCountdown(expireIsoTime) {
-      // 清除之前的定时器
-      if (countdownTimer) clearInterval(countdownTimer);
-
-      // 首次更新
-      const update = () => {
-        const remaining = calculateRemainingTime(expireIsoTime);
-        expireCountdownEl.textContent = `该页面将会在 ${remaining} 后被销毁`;
-        if (remaining === '已过期') {
-          expireCountdownEl.classList.add('expired');
-          clearInterval(countdownTimer);
-        }
-      };
-
-      update();
-      // 每秒更新一次
-      countdownTimer = setInterval(update, 1000);
-    }
-
-    /**
-     * 获取纸条元信息（创建时间、过期时间）
-     * @param {string} passKey - 4位提取密钥
-     */
-    async function getMemoMeta(passKey) {
-      try {
-        const res = await fetch(`${MEMO_API}/${passKey}/view/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Origin': 'https://n.showmsg.cn',
-            'Referer': `https://n.showmsg.cn/view/${passKey}`,
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36'
-          }
-        });
-
-        if (!res.ok) throw new Error(`状态码：${res.status}`);
-        const data = await res.json();
-        if (data.code !== 0 || !data.data || data.data.length === 0) {
-          throw new Error('未找到纸条元信息');
-        }
-        return data.data[0]; // 返回第一条数据（包含created_at和expired_at）
-      } catch (err) {
-        console.error('获取元信息失败：', err);
-        createTimeEl.textContent = '创建时间: 无法获取';
-        expireCountdownEl.textContent = '该页面将会在 未知时间 后被销毁';
-        return null;
-      }
-    }
-
-    // 获取纸条内容（核心逻辑）
+    // 获取纸条内容（修改：解析时间字段并展示）
     async function getMemo() {
       const inputKey = keyInput.value.trim();
       contentArea.className = '';
-
-      // 校验4位密钥
       if (inputKey.length !== 4) {
         contentArea.className = 'error';
         contentArea.textContent = '请输入4位提取密钥！';
         return;
       }
-
-      // 加载状态
+      if (!binId) {
+        contentArea.className = 'error';
+        contentArea.textContent = `请访问原站查看：\nhttps://n.showmsg.cn/view/${inputKey}`;
+        return;
+      }
       contentArea.className = 'loading';
       contentArea.textContent = '正在查询纸条...';
       submitBtn.disabled = true;
-      createTimeEl.textContent = '创建时间: 加载中...';
-      expireCountdownEl.textContent = '该页面将会在 加载中... 后被销毁';
-      expireCountdownEl.classList.remove('expired');
-
       try {
-        // 1. 先获取纸条元信息（实时创建时间、过期时间）
-        const memoMeta = await getMemoMeta(inputKey);
-        if (memoMeta) {
-          // 更新创建时间（UTC转北京时间）
-          const beijingCreateTime = isoToBeijingTime(memoMeta.created_at);
-          createTimeEl.textContent = `创建时间: ${beijingCreateTime}`;
-          // 启动实时倒计时
-          updateCountdown(memoMeta.expired_at);
-        }
-
-        // 2. 无binId则提示跳转原站
-        if (!binId) {
-          contentArea.className = 'error';
-          contentArea.textContent = `请访问原站查看：\nhttps://n.showmsg.cn/view/${inputKey}`;
-          return;
-        }
-
-        // 3. 请求JSONBIN获取内容
         const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
-          headers: {
-            'X-Master-Key': JSONBIN_KEY,
+          headers: { 
+            'X-Master-Key': JSONBIN_KEY, 
             'Content-Type': 'application/json',
             'X-Access-Key': JSONBIN_KEY
           }
         });
-
         if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
-        const memoContent = data.record[inputKey] || '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
-        contentArea.textContent = memoContent;
-
+        const memoData = data.record[inputKey];
+        // 解析并展示时间+内容（模拟原版格式）
+        let displayContent;
+        if (memoData && memoData.content) {
+          // 格式化时间（保持与原版一致的ISO格式展示）
+          displayContent = `📅 创建时间：${formatTime(memoData.created_at)}
+⌛ 过期时间：${formatTime(memoData.expired_at)}
+----------------------------------------
+📝 纸条内容：
+${memoData.content}`;
+        } else {
+          displayContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
+        }
+        contentArea.textContent = displayContent;
       } catch (err) {
         contentArea.className = 'error';
         contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
@@ -222,11 +98,20 @@
         submitBtn.disabled = false;
       }
     }
-
-    // 页面卸载时清除定时器
-    window.addEventListener('beforeunload', () => {
-      if (countdownTimer) clearInterval(countdownTimer);
-    });
+    // 辅助函数：格式化ISO时间为更易读的格式（可选，保持原版则可删除）
+    function formatTime(isoTime) {
+      if (!isoTime) return '未知';
+      const date = new Date(isoTime);
+      // 格式：YYYY-MM-DD HH:mm:ss（与原版截图展示逻辑一致）
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
   </script>
 </body>
 </html>
