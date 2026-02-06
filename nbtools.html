@@ -98,11 +98,10 @@
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
-    // 修复1：JSONBIN v3版本需加 /latest 获取最新内容
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_MASTER_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
 
-    // 自动填充URL中的key和binId
+    // 自动填充参数
     let binId = '';
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -114,59 +113,60 @@
       }
     };
 
-    /** 从JSONBIN读取纸条内容（修复接口路径+增加调试信息） */
+    /** 修复：强化Header传递 + 详细错误调试 */
     async function getMemoContent() {
       const key = keyInput.value.trim();
       contentArea.className = '';
       
-      // 校验4位密钥
       if (key.length !== 4) {
         contentArea.className = 'error';
-        contentArea.innerText = "请输入4位密钥（可包含数字/字母）！";
+        contentArea.innerText = "请输入4位密钥！";
         return;
       }
-
-      // 无binId时提示
       if (!binId) {
         contentArea.className = 'error';
-        contentArea.innerText = "缺少JSONBIN ID！请使用本地脚本生成的完整地址访问";
+        contentArea.innerText = "缺少JSONBIN ID！请使用本地脚本生成的地址访问";
         return;
       }
 
-      // 加载状态
       contentArea.className = 'loading';
       contentArea.innerText = "正在查询纸条...";
       submitBtn.disabled = true;
 
       try {
-        // 修复2：补充 /latest 后缀，适配JSONBIN v3接口
         const requestUrl = `${JSONBIN_API}/${binId}/latest`;
         const response = await fetch(requestUrl, {
+          method: 'GET', // 显式声明GET
           headers: {
             'X-Master-Key': JSONBIN_MASTER_KEY,
-            'Content-Type': 'application/json'
-          }
+            'X-Access-Key': JSONBIN_MASTER_KEY, // 补充X-Access-Key，兼容权限校验
+            'Content-Type': 'application/json',
+            'Accept': 'application/json' // 补充Accept头
+          },
+          mode: 'cors' // 显式声明跨域
         });
 
-        if (!response.ok) {
-          throw new Error(`JSONBIN请求失败，状态码：${response.status}`);
-        }
-
+        // 打印调试信息（可选，方便定位）
+        console.log('JSONBIN响应状态：', response.status);
         const result = await response.json();
-        // 修复3：增加对JSONBIN返回结构的校验
+        console.log('JSONBIN返回数据：', result);
+
+        if (!response.ok) {
+          throw new Error(result.message || `请求失败，状态码：${response.status}`);
+        }
         if (!result || !result.record) {
           throw new Error("JSONBIN返回数据格式异常");
         }
 
-        // 获取对应密钥的内容
-        const content = result.record[key] || "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
-        
-        // 显示结果
+        // 获取内容
+        const content = result.record[key] || "未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除";
         contentArea.className = '';
         contentArea.innerText = content;
+
       } catch (error) {
         contentArea.className = 'error';
-        contentArea.innerText = `请求失败：${error.message}`;
+        contentArea.innerText = `请求失败：${error.message}\n可手动访问原站：https://n.showmsg.cn/view/${key}`;
+        console.error('调试错误：', error);
       } finally {
         submitBtn.disabled = false;
       }
