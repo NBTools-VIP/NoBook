@@ -126,31 +126,31 @@
       submitBtn.disabled = true;
 
       try {
-        // 替换为无环境限制的免费CORS代理：allorigins.win
-        const corsProxy = "https://api.allorigins.win/get?url="; 
-        const apiUrl = `https://n.showmsg.cn/view/${key}`;
-        const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
+        // 核心修改：请求真实的动态接口（POST）
+        const apiUrl = `https://n.showmsg.cn/api/v1/memos/${key}/view/`;
+        // 使用支持POST的CORS代理（bridged.cc）
+        const corsProxy = "https://cors.bridged.cc/";
+        
+        const response = await fetch(corsProxy + apiUrl, {
+          method: 'POST', // 接口要求POST请求
           headers: {
             "Origin": "https://n.showmsg.cn",
-            "Referer": "https://n.showmsg.cn/create",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0"
-          }
+            "Referer": `https://n.showmsg.cn/view/${key}`,
+            "Content-Type": "application/json", // 接口要求JSON格式
+            "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36"
+          },
+          body: JSON.stringify({}), // 接口要求空JSON体（content-length:0）
+          timeout: 10000
         });
 
-        // 处理allorigins.win的返回格式（JSON包裹HTML）
-        const proxyResponse = await response.json();
-        const html = proxyResponse.contents || ''; // 提取真实的HTML内容
+        // 解析JSON响应（直接获取纸条内容）
+        const result = await response.json();
+        let memoContent = "";
         
-        if (!html) throw new Error('代理未返回目标页面内容');
-
-        // 精准解析纸条内容
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const contentElement = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed');
-        let memoContent = contentElement ? contentElement.textContent.trim() : "";
-        
-        // 兜底提示
-        if (!memoContent) {
+        // 校验响应是否正常
+        if (result.code === 0 && result.data && result.data.length > 0) {
+          memoContent = result.data[0].content || "纸条内容为空";
+        } else {
           memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
         }
 
