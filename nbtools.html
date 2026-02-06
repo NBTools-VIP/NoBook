@@ -126,27 +126,60 @@
       submitBtn.disabled = true;
 
       try {
-        // CORS代理请求目标API
-        const corsProxy = "https://corsproxy.io/?";
+        // 关键修改1：更换更稳定的CORS代理（解决代理返回异常问题）
         const apiUrl = `https://n.showmsg.cn/view/${key}`;
-        const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
-          headers: {
-            "Origin": "https://n.showmsg.cn",
-            "Referer": "https://n.showmsg.cn/create",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0"
-          }
-        });
+        // 使用多代理备选，优先用bridged.cc（更稳定）
+        let response, html;
+        const proxies = [
+          `https://cors.bridged.cc/${apiUrl}`,
+          `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
+        ];
 
-        // 前端解析HTML，精准提取内容
-        const html = await response.text();
+        // 尝试多个代理，确保能获取到内容
+        for (const proxyUrl of proxies) {
+          try {
+            response = await fetch(proxyUrl, {
+              method: 'GET',
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Referer': 'https://n.showmsg.cn/create/',
+                'Origin': 'https://n.showmsg.cn'
+              },
+              timeout: 10000 // 10秒超时
+            });
+            if (response.ok) {
+              html = await response.text();
+              break; // 成功获取，退出循环
+            }
+          } catch (e) {
+            continue; // 该代理失败，尝试下一个
+          }
+        }
+
+        if (!html) throw new Error('所有CORS代理请求失败');
+
+        // 关键修改2：强鲁棒性解析（过滤干扰内容，精准提取）
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // 关键修改：使用精准的选择器匹配纸条内容标签
-        const contentElement = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed');
-        let memoContent = contentElement ? contentElement.textContent.trim() : "";
+        // 方案1：精准匹配目标class（优先）
+        let memoContent = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed')?.textContent.trim() || '';
         
-        // 兜底提示
+        // 方案2：备用匹配（按标签特征兜底）
+        if (!memoContent) {
+          const allPreWrap = doc.querySelectorAll('.whitespace-pre-wrap');
+          for (const el of allPreWrap) {
+            const text = el.textContent.trim();
+            if (text && !text.includes('纸条') && !text.includes('创建时间')) { // 排除页面文案，只取内容
+              memoContent = text;
+              break;
+            }
+          }
+        }
+
+        // 最终兜底提示
         if (!memoContent) {
           memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
         }
@@ -154,6 +187,7 @@
         // 显示结果
         contentArea.className = '';
         contentArea.innerText = memoContent;
+
       } catch (error) {
         contentArea.className = 'error';
         contentArea.innerText = `请求失败：${error.message}`;
