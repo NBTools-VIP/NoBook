@@ -5,91 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>私密纸条查看器</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "微软雅黑", "PingFang SC", sans-serif;
-    }
-    body {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f5f7fa;
-      padding: 20px;
-    }
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      padding: 30px;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 25px;
-      font-size: 24px;
-    }
-    .input-group {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    #keyInput {
-      flex: 1;
-      height: 45px;
-      padding: 0 15px;
-      border: 1px solid #e1e5eb;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-    #keyInput:focus {
-      outline: none;
-      border-color: #409eff;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
-    }
-    #submitBtn {
-      height: 45px;
-      padding: 0 20px;
-      background-color: #409eff;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    #submitBtn:hover {
-      background-color: #337ecc;
-    }
-    #contentArea {
-      min-height: 120px;
-      padding: 15px;
-      border-radius: 8px;
-      background-color: #f8fafc;
-      border: 1px solid #e1e5eb;
-      white-space: pre-wrap;
-      line-height: 1.6;
-      color: #333;
-    }
-    .error {
-      color: #f56c6c;
-    }
-    .loading {
-      color: #888;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", sans-serif; }
+    body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 500px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
+    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 25px; font-weight: 600; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+    #keyInput { flex: 1; height: 48px; padding: 0 15px; border: 1px solid #e1e5eb; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; }
+    #keyInput:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,0.1); }
+    #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+    #submitBtn:hover { background: #337ecc; }
+    #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
+    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
+    .error { color: #f56c6c; }
+    .loading { color: #888; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>私密纸条查看器</h1>
     <div class="input-group">
-      <input type="text" id="keyInput" placeholder="请输入4位提取密钥（数字/字母）">
-      <button id="submitBtn" onclick="getMemoContent()">确认查看</button>
+      <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
+      <button id="submitBtn" onclick="getMemo()">确认查看</button>
     </div>
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
   </div>
@@ -99,74 +35,55 @@
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-    const JSONBIN_MASTER_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
+    const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
 
-    // 自动填充参数
-    let binId = '';
-    window.onload = function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const key = urlParams.get('key');
-      binId = urlParams.get('binId') || '';
-      if (key) {
-        keyInput.value = key;
-        getMemoContent();
-      }
-    };
+    // 解析短地址参数（c=key_binId）
+    let key = '', binId = '';
+    const params = new URLSearchParams(window.location.search);
+    const cParam = params.get('c');
+    if (cParam) {
+      [key, binId] = cParam.split('_');
+      keyInput.value = key;
+      getMemo();
+    }
 
-    /** 修复：强化Header传递 + 详细错误调试 */
-    async function getMemoContent() {
-      const key = keyInput.value.trim();
+    // 获取纸条内容
+    async function getMemo() {
+      const inputKey = keyInput.value.trim();
       contentArea.className = '';
-      
-      if (key.length !== 4) {
+
+      // 校验密钥
+      if (inputKey.length !== 4) {
         contentArea.className = 'error';
-        contentArea.innerText = "请输入4位密钥！";
+        contentArea.textContent = '请输入4位提取密钥！';
         return;
       }
+
+      // 无binId则提示跳转原站
       if (!binId) {
         contentArea.className = 'error';
-        contentArea.innerText = "缺少JSONBIN ID！请使用本地脚本生成的地址访问";
+        contentArea.textContent = `请访问原站查看：\nhttps://n.showmsg.cn/view/${inputKey}`;
         return;
       }
 
+      // 加载状态
       contentArea.className = 'loading';
-      contentArea.innerText = "正在查询纸条...";
+      contentArea.textContent = '正在查询纸条...';
       submitBtn.disabled = true;
 
       try {
-        const requestUrl = `${JSONBIN_API}/${binId}/latest`;
-        const response = await fetch(requestUrl, {
-          method: 'GET', // 显式声明GET
-          headers: {
-            'X-Master-Key': JSONBIN_MASTER_KEY,
-            'X-Access-Key': JSONBIN_MASTER_KEY, // 补充X-Access-Key，兼容权限校验
-            'Content-Type': 'application/json',
-            'Accept': 'application/json' // 补充Accept头
-          },
-          mode: 'cors' // 显式声明跨域
+        // 请求JSONBIN
+        const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
+          headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' }
         });
-
-        // 打印调试信息（可选，方便定位）
-        console.log('JSONBIN响应状态：', response.status);
-        const result = await response.json();
-        console.log('JSONBIN返回数据：', result);
-
-        if (!response.ok) {
-          throw new Error(result.message || `请求失败，状态码：${response.status}`);
-        }
-        if (!result || !result.record) {
-          throw new Error("JSONBIN返回数据格式异常");
-        }
-
-        // 获取内容
-        const content = result.record[key] || "未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除";
-        contentArea.className = '';
-        contentArea.innerText = content;
-
-      } catch (error) {
+        if (!res.ok) throw new Error(`请求失败（${res.status}）`);
+        
+        const data = await res.json();
+        const content = data.record[inputKey] || '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
+        contentArea.textContent = content;
+      } catch (err) {
         contentArea.className = 'error';
-        contentArea.innerText = `请求失败：${error.message}\n可手动访问原站：https://n.showmsg.cn/view/${key}`;
-        console.error('调试错误：', error);
+        contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
       } finally {
         submitBtn.disabled = false;
       }
