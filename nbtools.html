@@ -99,6 +99,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
 
+    // 自动填充URL中的key
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const key = urlParams.get('key');
@@ -112,84 +113,48 @@
       const key = keyInput.value.trim();
       contentArea.className = '';
       
+      // 校验4位密钥
       if (key.length !== 4) {
         contentArea.className = 'error';
         contentArea.innerText = "请输入4位密钥（可包含数字/字母）！";
         return;
       }
 
+      // 加载状态
       contentArea.className = 'loading';
       contentArea.innerText = "正在查询纸条...";
       submitBtn.disabled = true;
 
       try {
+        // 完全保留原有请求逻辑（corsproxy.io代理+简洁请求头）
+        const corsProxy = "https://corsproxy.io/?"; 
         const apiUrl = `https://n.showmsg.cn/view/${key}`;
-        // 新增更多高可用CORS代理（按优先级排序）
-        const proxies = [
-          `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
-          `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
-          `https://cors-anywhere.herokuapp.com/${apiUrl}`,
-          `https://cors.bridged.cc/${apiUrl}`,
-          `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
-        ];
-
-        let html = '';
-        // 逐个尝试代理，记录失败原因（方便调试）
-        const errors = [];
-        for (const proxyUrl of proxies) {
-          try {
-            const response = await fetch(proxyUrl, {
-              method: 'GET',
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                'Referer': 'https://n.showmsg.cn/create/',
-                'Origin': 'https://n.showmsg.cn'
-              },
-              timeout: 15000
-            });
-            
-            // 适配不同代理的返回格式（部分代理会包装JSON）
-            let rawData = await response.text();
-            if (proxyUrl.includes('allorigins.win')) {
-              // allorigins.win返回JSON格式，需解析
-              const jsonData = JSON.parse(rawData);
-              html = jsonData.contents || '';
-            } else {
-              html = rawData;
-            }
-
-            if (html) break;
-          } catch (e) {
-            errors.push(`${proxyUrl}：${e.message}`);
-            continue;
+        const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
+          headers: {
+            "Origin": "https://n.showmsg.cn",
+            "Referer": "https://n.showmsg.cn/create",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0"
           }
-        }
+        });
 
-        if (!html) throw new Error(`所有代理请求失败：\n${errors.join('\n')}`);
-
-        // 解析内容
+        // ========== 仅修改这部分解析逻辑 ==========
+        const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        let memoContent = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed')?.textContent.trim() || '';
         
-        if (!memoContent) {
-          const allPreWrap = doc.querySelectorAll('.whitespace-pre-wrap');
-          for (const el of allPreWrap) {
-            const text = el.textContent.trim();
-            if (text && !text.includes('纸条') && !text.includes('创建时间')) {
-              memoContent = text;
-              break;
-            }
-          }
-        }
-
+        // 核心修复：使用精准的选择器匹配目标内容标签
+        const contentElement = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed');
+        let memoContent = contentElement ? contentElement.textContent.trim() : "";
+        
+        // 兜底提示（保留原有文案）
         if (!memoContent) {
           memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
         }
+        // ========== 解析逻辑修改结束 ==========
 
+        // 显示结果
         contentArea.className = '';
         contentArea.innerText = memoContent;
-
       } catch (error) {
         contentArea.className = 'error';
         contentArea.innerText = `请求失败：${error.message}`;
