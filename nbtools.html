@@ -14,7 +14,6 @@
     body {
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       background-color: #f5f7fa;
@@ -27,7 +26,6 @@
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       padding: 30px;
-      margin-bottom: 20px;
     }
     h1 {
       text-align: center;
@@ -84,16 +82,6 @@
     .loading {
       color: #888;
     }
-    /* 隐藏iframe，仅用于加载内容 */
-    #hiddenIframe {
-      width: 1px;
-      height: 1px;
-      border: none;
-      opacity: 0;
-      position: absolute;
-      top: -9999px;
-      left: -9999px;
-    }
   </style>
 </head>
 <body>
@@ -101,40 +89,45 @@
     <h1>私密纸条查看器</h1>
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥（数字/字母）">
-      <button id="submitBtn" onclick="loadNote()">确认查看</button>
+      <button id="submitBtn" onclick="getMemoContent()">确认查看</button>
     </div>
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
   </div>
-
-  <!-- 隐藏的iframe，用于加载目标纸条页面 -->
-  <iframe id="hiddenIframe" onload="extractNoteContent()"></iframe>
 
   <script>
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
-    const hiddenIframe = document.getElementById('hiddenIframe');
-    let currentKey = '';
+    const JSONBIN_API = 'https://api.jsonbin.io/v3/b'; // JSONBIN接口
 
-    // 自动填充URL中的key
+    // 自动填充URL中的key和binId
+    let binId = ''; // JSONBIN的存储ID
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const key = urlParams.get('key');
+      binId = urlParams.get('binId') || ''; // 从URL获取binId
       if (key) {
         keyInput.value = key;
-        loadNote();
+        getMemoContent();
       }
     };
 
-    // 加载目标纸条页面到iframe
-    function loadNote() {
-      currentKey = keyInput.value.trim();
+    /** 从JSONBIN读取内容 */
+    async function getMemoContent() {
+      const key = keyInput.value.trim();
       contentArea.className = '';
       
       // 校验4位密钥
-      if (currentKey.length !== 4) {
+      if (key.length !== 4) {
         contentArea.className = 'error';
         contentArea.innerText = "请输入4位密钥（可包含数字/字母）！";
+        return;
+      }
+
+      // 无binId时提示
+      if (!binId) {
+        contentArea.className = 'error';
+        contentArea.innerText = "缺少JSONBIN ID！请使用本地脚本生成的完整地址访问";
         return;
       }
 
@@ -143,39 +136,25 @@
       contentArea.innerText = "正在查询纸条...";
       submitBtn.disabled = true;
 
-      // 加载目标页面到隐藏iframe
-      hiddenIframe.src = `https://n.showmsg.cn/view/${currentKey}`;
-    }
-
-    // 从iframe中提取纸条内容（核心逻辑）
-    function extractNoteContent() {
       try {
-        // 等待iframe内容完全渲染（SPA加载需要时间）
-        setTimeout(() => {
-          let memoContent = "";
-          try {
-            // 访问iframe的文档内容，提取目标元素
-            const iframeDoc = hiddenIframe.contentDocument || hiddenIframe.contentWindow.document;
-            const contentElement = iframeDoc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed');
-            
-            if (contentElement) {
-              memoContent = contentElement.textContent.trim();
-            } else {
-              memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
-            }
-          } catch (e) {
-            // 跨域访问限制时的兜底（直接提示跳转）
-            memoContent = `请手动访问以下链接查看纸条：\nhttps://n.showmsg.cn/view/${currentKey}`;
+        // 直接请求JSONBIN（支持跨域）
+        const response = await fetch(`${JSONBIN_API}/${binId}`, {
+          headers: {
+            'X-Master-Key': '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u',
+            'Content-Type': 'application/json'
           }
+        });
 
-          // 显示结果
-          contentArea.className = '';
-          contentArea.innerText = memoContent;
-          submitBtn.disabled = false;
-        }, 3000); // 等待3秒，确保SPA动态内容加载完成
+        const result = await response.json();
+        const content = result.record[key] || "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
+        
+        // 显示结果
+        contentArea.className = '';
+        contentArea.innerText = content;
       } catch (error) {
         contentArea.className = 'error';
         contentArea.innerText = `请求失败：${error.message}`;
+      } finally {
         submitBtn.disabled = false;
       }
     }
