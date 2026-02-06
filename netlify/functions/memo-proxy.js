@@ -12,13 +12,12 @@ exports.handler = async (event, context) => {
     const apiUrl = `https://n.showmsg.cn/api/v1/memos/${key}`;
     const response = await fetch(apiUrl, {
       method: "GET",
-      // 移除Referer头，仅保留User-Agent模拟浏览器请求
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://n.showmsg.cn/" // 设置为目标API自身域名
       }
     });
 
-    // 先获取原始响应文本，避免JSON解析报错
     const rawResponse = await response.text();
     let data;
     try {
