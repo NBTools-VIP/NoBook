@@ -37,13 +37,23 @@
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
 
-    // 解析短地址参数（c=key_binId）
-    let key = '', binId = '';
+    // 全局存储binId（后台隐藏，不显示在输入框）
+    let binId = '';
+
+    // 解析短地址参数（c=key_binId）- 核心修复
     const params = new URLSearchParams(window.location.search);
     const cParam = params.get('c');
     if (cParam) {
-      [key, binId] = cParam.split('_');
-      keyInput.value = key;
+      const [parseKey, parseBinId] = cParam.split('_');
+      // 仅将4位密钥填充到输入框
+      if (parseKey && parseKey.length === 4) {
+        keyInput.value = parseKey;
+      }
+      // binId后台存储，不显示
+      if (parseBinId) {
+        binId = parseBinId;
+      }
+      // 自动查询内容
       getMemo();
     }
 
@@ -52,7 +62,7 @@
       const inputKey = keyInput.value.trim();
       contentArea.className = '';
 
-      // 校验密钥
+      // 校验4位密钥
       if (inputKey.length !== 4) {
         contentArea.className = 'error';
         contentArea.textContent = '请输入4位提取密钥！';
@@ -72,15 +82,22 @@
       submitBtn.disabled = true;
 
       try {
-        // 请求JSONBIN
+        // 请求JSONBIN获取内容
         const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
-          headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' }
+          headers: { 
+            'X-Master-Key': JSONBIN_KEY, 
+            'Content-Type': 'application/json',
+            'X-Access-Key': JSONBIN_KEY
+          }
         });
-        if (!res.ok) throw new Error(`请求失败（${res.status}）`);
         
+        if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
-        const content = data.record[inputKey] || '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
-        contentArea.textContent = content;
+        
+        // 读取对应密钥的内容
+        const memoContent = data.record[inputKey] || '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
+        contentArea.textContent = memoContent;
+
       } catch (err) {
         contentArea.className = 'error';
         contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
