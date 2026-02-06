@@ -2,54 +2,151 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>查看私密纸条</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>私密纸条查看器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "微软雅黑", "PingFang SC", sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f7fa;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+      font-size: 24px;
+    }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #keyInput {
+      flex: 1;
+      height: 45px;
+      padding: 0 15px;
+      border: 1px solid #e1e5eb;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    #keyInput:focus {
+      outline: none;
+      border-color: #409eff;
+      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+    }
+    #submitBtn {
+      height: 45px;
+      padding: 0 20px;
+      background-color: #409eff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #submitBtn:hover {
+      background-color: #337ecc;
+    }
+    #contentArea {
+      min-height: 120px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #f8fafc;
+      border: 1px solid #e1e5eb;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #333;
+    }
+    /* 错误提示样式 */
+    .error {
+      color: #f56c6c;
+    }
+    /* 加载样式 */
+    .loading {
+      color: #888;
+    }
+  </style>
 </head>
 <body>
-  <div>
-    <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
-    <button onclick="getMemoContent()">确认查看</button>
-    <div id="contentArea" style="margin-top: 20px; white-space: pre-wrap;"></div>
+  <div class="container">
+    <h1>私密纸条查看器</h1>
+    <div class="input-group">
+      <input type="text" id="keyInput" placeholder="请输入4位提取密钥（数字/字母）">
+      <button id="submitBtn" onclick="getMemoContent()">确认查看</button>
+    </div>
+    <div id="contentArea" class="loading">请输入密钥并点击查看</div>
   </div>
 
   <script>
-    // 从URL参数中自动填充key（可选，提升体验）
+    const keyInput = document.getElementById('keyInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const contentArea = document.getElementById('contentArea');
+
+    // 自动填充URL中的key
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const key = urlParams.get('key');
       if (key) {
-        document.getElementById('keyInput').value = key;
-        getMemoContent(); // 自动查询
+        keyInput.value = key;
+        getMemoContent();
       }
     };
 
-    // 核心：调用代理函数获取纸条内容
     async function getMemoContent() {
-      const key = document.getElementById('keyInput').value.trim();
-      const contentArea = document.getElementById('contentArea');
+      const key = keyInput.value.trim();
       
-      // 1. 输入校验
-      if (!key || key.length !== 4 || isNaN(key)) {
-        contentArea.innerText = "请输入有效的4位数字提取密钥！";
+      // 重置样式
+      contentArea.className = '';
+      
+      // 核心修改：仅校验4位长度，不再限制数字
+      if (key.length !== 4) {
+        contentArea.className = 'error';
+        contentArea.innerText = "请输入4位密钥（可包含数字/字母）！";
         return;
       }
 
-      // 2. 显示加载状态
-      contentArea.innerText = "正在查询...";
+      // 加载状态
+      contentArea.className = 'loading';
+      contentArea.innerText = "正在查询纸条...";
+      submitBtn.disabled = true; // 防止重复点击
 
       try {
-        // 3. 调用Netlify代理函数（替换为你的Netlify域名，或用相对路径）
+        // 调用代理函数
         const response = await fetch(`/.netlify/functions/memo-proxy?key=${key}`);
-        const result = await response.json(); // 解析JSON（不再报错）
+        const result = await response.json();
 
-        // 4. 渲染结果
+        // 显示结果
         if (result.success) {
-          contentArea.innerText = result.content; // 显示纸条内容
+          contentArea.className = '';
+          contentArea.innerText = result.content;
         } else {
-          contentArea.innerText = `错误：${result.message}`; // 显示错误信息
+          contentArea.className = 'error';
+          contentArea.innerText = `错误：${result.message}`;
         }
       } catch (error) {
-        // 网络/解析异常处理
-        contentArea.innerText = `网络请求失败：${error.message}`;
+        contentArea.className = 'error';
+        contentArea.innerText = `请求失败：${error.message}`;
+      } finally {
+        submitBtn.disabled = false; // 恢复按钮
       }
     }
   </script>
