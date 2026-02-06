@@ -15,7 +15,7 @@
     #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
     #submitBtn:hover { background: #337ecc; }
     #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
-    #contentArea { min-height: 180px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
+    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
     .error { color: #f56c6c; }
     .loading { color: #888; }
   </style>
@@ -29,43 +29,41 @@
     </div>
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
   </div>
+
   <script>
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
+
+    // 全局存储binId（后台隐藏，不显示在输入框）
     let binId = '';
 
-    // 解析短地址参数（c=key_binId）
+    // 解析短地址参数（c=key_binId）- 核心修复
     const params = new URLSearchParams(window.location.search);
     const cParam = params.get('c');
     if (cParam) {
       const [parseKey, parseBinId] = cParam.split('_');
+      // 仅将4位密钥填充到输入框
       if (parseKey && parseKey.length === 4) {
         keyInput.value = parseKey;
       }
+      // binId后台存储，不显示
       if (parseBinId) {
         binId = parseBinId;
       }
+      // 自动查询内容
       getMemo();
     }
 
-    // 时间格式化工具（兼容ISO格式）
-    function formatIsoTime(isoTime) {
-      if (!isoTime) return '未知时间';
-      const date = new Date(isoTime);
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+    // 格式化时间为原版样式（ISO格式原样展示）
+    function formatTime(isoTime) {
+      if (!isoTime) return '未知';
+      return isoTime; // 完全保留原版的ISO格式，不做额外修改
     }
 
-    // 修复400错误的核心函数
+    // 获取纸条内容
     async function getMemo() {
       const inputKey = keyInput.value.trim();
       contentArea.className = '';
@@ -90,41 +88,39 @@
       submitBtn.disabled = true;
 
       try {
-        // 修复点1：精简请求头（移除冗余的Content-Type和X-Access-Key）
+        // 请求JSONBIN获取内容
         const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
           headers: { 
-            'X-Master-Key': JSONBIN_KEY // 仅保留主密钥，符合JSONBIN v3 API要求
-          },
-          method: 'GET' // 显式指定GET方法（默认也是GET，但更规范）
+            'X-Master-Key': JSONBIN_KEY, 
+            'Content-Type': 'application/json',
+            'X-Access-Key': JSONBIN_KEY
+          }
         });
-
-        if (!res.ok) throw new Error(`状态码：${res.status}（${res.statusText}）`);
+        
+        if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
+        
+        // 读取对应密钥的内容（兼容新旧数据格式）
+        let memoContent = '';
         const memoData = data.record[inputKey];
-
-        // 修复点2：兼容新旧数据格式（字符串/对象）
-        let displayContent;
         if (typeof memoData === 'object' && memoData.content) {
-          // 新格式（包含时间字段）
-          displayContent = `📅 创建时间：${formatIsoTime(memoData.created_at)}
-⌛ 过期时间：${formatIsoTime(memoData.expired_at)}
-----------------------------------------
-📝 纸条内容：
-${memoData.content}`;
-        } else if (typeof memoData === 'string' && memoData) {
-          // 旧格式（仅存储内容字符串）
-          displayContent = `📝 纸条内容：
-${memoData}
-----------------------------------------
-ℹ️  该纸条无时间信息（旧版本创建）`;
-        } else {
-          displayContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
-        }
+          // 新格式（包含时间字段）- 按原版样式展示
+          memoContent = `创建时间: ${formatTime(memoData.created_at)}
+过期时间: ${formatTime(memoData.expired_at)}
 
-        contentArea.textContent = displayContent;
+${memoData.content}`;
+        } else if (typeof memoData === 'string') {
+          // 旧格式（仅内容）- 保持原有展示
+          memoContent = memoData;
+        } else {
+          // 无数据
+          memoContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
+        }
+        contentArea.textContent = memoContent;
+
       } catch (err) {
         contentArea.className = 'error';
-        contentArea.textContent = `请求失败：${err.message}\n建议操作：\n1. 检查网络连接\n2. 直接访问原站：https://n.showmsg.cn/view/${inputKey}`;
+        contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
       } finally {
         submitBtn.disabled = false;
       }
