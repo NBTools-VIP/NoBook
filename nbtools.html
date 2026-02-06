@@ -76,11 +76,9 @@
       line-height: 1.6;
       color: #333;
     }
-    /* 错误提示样式 */
     .error {
       color: #f56c6c;
     }
-    /* 加载样式 */
     .loading {
       color: #888;
     }
@@ -113,11 +111,9 @@
 
     async function getMemoContent() {
       const key = keyInput.value.trim();
-      
-      // 重置样式
       contentArea.className = '';
       
-      // 核心修改：仅校验4位长度，不再限制数字
+      // 校验4位密钥
       if (key.length !== 4) {
         contentArea.className = 'error';
         contentArea.innerText = "请输入4位密钥（可包含数字/字母）！";
@@ -127,26 +123,47 @@
       // 加载状态
       contentArea.className = 'loading';
       contentArea.innerText = "正在查询纸条...";
-      submitBtn.disabled = true; // 防止重复点击
+      submitBtn.disabled = true;
 
       try {
-        // 调用代理函数
-        const response = await fetch(`/.netlify/functions/memo-proxy?key=${key}`);
-        const result = await response.json();
+        // 关键修改：通过CORS代理请求目标API（适配GitHub Pages静态环境）
+        const corsProxy = "https://corsproxy.io/?"; // 免费公开CORS代理
+        const apiUrl = `https://n.showmsg.cn/view/${key}`;
+        const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
+          headers: {
+            "Origin": "https://n.showmsg.cn",
+            "Referer": "https://n.showmsg.cn/create",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0"
+          }
+        });
+
+        // 前端直接解析HTML（替代后端代理的逻辑）
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // 提取纸条内容（适配目标API的HTML结构）
+        let memoContent = '';
+        const contentSelectors = ['.memo-content', '.content', 'main', '.note-content', '#content'];
+        for (const selector of contentSelectors) {
+          const element = doc.querySelector(selector);
+          if (element) {
+            memoContent = element.textContent.trim();
+            break;
+          }
+        }
+        if (!memoContent) {
+          memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
+        }
 
         // 显示结果
-        if (result.success) {
-          contentArea.className = '';
-          contentArea.innerText = result.content;
-        } else {
-          contentArea.className = 'error';
-          contentArea.innerText = `错误：${result.message}`;
-        }
+        contentArea.className = '';
+        contentArea.innerText = memoContent;
       } catch (error) {
         contentArea.className = 'error';
         contentArea.innerText = `请求失败：${error.message}`;
       } finally {
-        submitBtn.disabled = false; // 恢复按钮
+        submitBtn.disabled = false;
       }
     }
   </script>
