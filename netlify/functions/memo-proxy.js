@@ -1,42 +1,48 @@
-// netlify/functions/memo-proxy.js
 exports.handler = async (event, context) => {
   try {
-    // 从请求参数中获取key
     const { key } = event.queryStringParameters;
     if (!key) {
       return {
         statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": event.headers.origin },
         body: JSON.stringify({ success: false, message: "缺少key参数" })
       };
     }
 
-    // 转发请求到目标API
     const apiUrl = `https://n.showmsg.cn/api/v1/memos/${key}`;
     const response = await fetch(apiUrl, {
       method: "GET",
+      // 移除Referer头，仅保留User-Agent模拟浏览器请求
       headers: {
-        "Content-Type": "application/json",
-        "Referer": event.headers.origin // 传递Netlify域名作为Referer
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       }
     });
 
-    // 处理API返回结果
-    const data = await response.json();
+    // 先获取原始响应文本，避免JSON解析报错
+    const rawResponse = await response.text();
+    let data;
+    try {
+      data = JSON.parse(rawResponse);
+    } catch (parseError) {
+      return {
+        statusCode: response.status,
+        headers: { "Access-Control-Allow-Origin": event.headers.origin },
+        body: JSON.stringify({
+          success: false,
+          message: `目标API返回：${rawResponse}`
+        })
+      };
+    }
+
     return {
       statusCode: 200,
-      headers: {
-        // 允许Netlify域名跨域
-        "Access-Control-Allow-Origin": event.headers.origin,
-        "Access-Control-Allow-Methods": "GET"
-      },
+      headers: { "Access-Control-Allow-Origin": event.headers.origin },
       body: JSON.stringify(data)
     };
   } catch (error) {
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": event.headers.origin
-      },
+      headers: { "Access-Control-Allow-Origin": event.headers.origin },
       body: JSON.stringify({ success: false, message: "代理请求失败：" + error.message })
     };
   }
