@@ -8,7 +8,16 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", sans-serif; }
     body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { width: 100%; max-width: 500px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
-    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 25px; font-weight: 600; }
+    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 10px; font-weight: 600; }
+    /* 新增时间提示区样式，匹配原版 */
+    .time-tips { 
+      text-align: center; 
+      font-size: 14px; 
+      margin-bottom: 20px; 
+      line-height: 1.6;
+    }
+    .create-time { color: #666; }
+    .expire-time { color: #ff4444; /* 原版红色 */ }
     .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
     #keyInput { flex: 1; height: 48px; padding: 0 15px; border: 1px solid #e1e5eb; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; }
     #keyInput:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,0.1); }
@@ -23,6 +32,11 @@
 <body>
   <div class="container">
     <h1>NoBook 账户查询</h1>
+    <!-- 新增时间提示区，匹配原版布局 -->
+    <div class="time-tips" id="timeTips">
+      <div class="create-time">创建时间：</div>
+      <div class="expire-time">该页面将会在 小时 分钟后被销毁</div>
+    </div>
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
       <button id="submitBtn" onclick="getMemo()">确认查看</button>
@@ -34,6 +48,7 @@
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
+    const timeTips = document.getElementById('timeTips'); // 新增时间提示区DOM
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
 
@@ -57,10 +72,23 @@
       getMemo();
     }
 
-    // 格式化时间为原版样式（转换为本地时间，匹配原版显示格式）
-    function formatOriginalTime(isoTime) {
+    // 计算剩余时间（原版表述：xx小时xx分钟后销毁）
+    function calculateRemainingTime(expiredAt) {
+      if (!expiredAt) return { hours: 0, minutes: 0 };
+      const expireTime = new Date(expiredAt).getTime();
+      const now = new Date().getTime();
+      const diff = expireTime - now;
+      
+      if (diff <= 0) return { hours: 0, minutes: 0 }; // 已过期
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      return { hours, minutes };
+    }
+
+    // 格式化创建时间（原版样式：YYYY-MM-DD HH:mm:ss）
+    function formatCreateTime(isoTime) {
       if (!isoTime) return '未知';
-      // 解析ISO时间为本地时间，格式和原版完全一致：YYYY-MM-DD HH:mm:ss
       const date = new Date(isoTime);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -69,6 +97,18 @@
       const minutes = String(date.getMinutes()).padStart(2, '0');
       const seconds = String(date.getSeconds()).padStart(2, '0');
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 更新时间提示区（匹配原版样式）
+    function updateTimeTips(createdAt, expiredAt) {
+      const createTimeText = formatCreateTime(createdAt);
+      const { hours, minutes } = calculateRemainingTime(expiredAt);
+      
+      // 完全匹配原版文字表述和样式
+      timeTips.innerHTML = `
+        <div class="create-time">创建时间：${createTimeText}</div>
+        <div class="expire-time">该页面将会在 ${hours}小时 ${minutes}分钟后被销毁</div>
+      `;
     }
 
     // 获取纸条内容
@@ -94,6 +134,11 @@
       contentArea.className = 'loading';
       contentArea.textContent = '正在查询纸条...';
       submitBtn.disabled = true;
+      // 重置时间提示区为加载状态
+      timeTips.innerHTML = `
+        <div class="create-time">创建时间：查询中...</div>
+        <div class="expire-time">该页面将会在 查询中... 小时 查询中... 分钟后被销毁</div>
+      `;
 
       try {
         // 请求JSONBIN获取内容
@@ -108,27 +153,40 @@
         if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
         
-        // 读取对应密钥的内容（完全匹配原版样式）
+        // 读取对应密钥的内容
         let memoContent = '';
         const memoData = data.record[inputKey];
         if (typeof memoData === 'object' && memoData.content) {
-          // 新格式 - 1:1匹配原版排版和样式
-          memoContent = `创建时间: ${formatOriginalTime(memoData.created_at)}
-过期时间: ${formatOriginalTime(memoData.expired_at)}
-
-${memoData.content}`;
+          // 新格式 - 仅展示内容，时间移到标题区
+          memoContent = memoData.content;
+          // 更新标题区时间提示（核心：匹配原版样式）
+          updateTimeTips(memoData.created_at, memoData.expired_at);
         } else if (typeof memoData === 'string') {
-          // 旧格式（仅内容）- 保持原有展示
+          // 旧格式（仅内容）- 时间提示区显示默认值
           memoContent = memoData;
+          timeTips.innerHTML = `
+            <div class="create-time">创建时间：未知</div>
+            <div class="expire-time">该页面将会在 24小时 0分钟后被销毁</div>
+          `;
         } else {
           // 无数据
           memoContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
+          // 重置时间提示区
+          timeTips.innerHTML = `
+            <div class="create-time">创建时间：</div>
+            <div class="expire-time">该页面将会在 小时 分钟后被销毁</div>
+          `;
         }
         contentArea.textContent = memoContent;
 
       } catch (err) {
         contentArea.className = 'error';
         contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
+        // 错误时重置时间提示区
+        timeTips.innerHTML = `
+          <div class="create-time">创建时间：</div>
+          <div class="expire-time">该页面将会在 小时 分钟后被销毁</div>
+        `;
       } finally {
         submitBtn.disabled = false;
       }
