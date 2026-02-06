@@ -57,10 +57,18 @@
       getMemo();
     }
 
-    // 格式化时间为原版样式（ISO格式原样展示）
-    function formatTime(isoTime) {
+    // 格式化时间为原版样式（转换为本地时间，匹配原版显示格式）
+    function formatOriginalTime(isoTime) {
       if (!isoTime) return '未知';
-      return isoTime; // 完全保留原版的ISO格式，不做额外修改
+      // 解析ISO时间为本地时间，格式和原版完全一致：YYYY-MM-DD HH:mm:ss
+      const date = new Date(isoTime);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
     // 获取纸条内容
@@ -100,13 +108,13 @@
         if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
         
-        // 读取对应密钥的内容（兼容新旧数据格式）
+        // 读取对应密钥的内容（完全匹配原版样式）
         let memoContent = '';
         const memoData = data.record[inputKey];
         if (typeof memoData === 'object' && memoData.content) {
-          // 新格式（包含时间字段）- 按原版样式展示
-          memoContent = `创建时间: ${formatTime(memoData.created_at)}
-过期时间: ${formatTime(memoData.expired_at)}
+          // 新格式 - 1:1匹配原版排版和样式
+          memoContent = `创建时间: ${formatOriginalTime(memoData.created_at)}
+过期时间: ${formatOriginalTime(memoData.expired_at)}
 
 ${memoData.content}`;
         } else if (typeof memoData === 'string') {
