@@ -126,8 +126,8 @@
       submitBtn.disabled = true;
 
       try {
-        // 关键修改：通过CORS代理请求目标API（适配GitHub Pages静态环境）
-        const corsProxy = "https://corsproxy.io/?"; // 免费公开CORS代理
+        // CORS代理请求目标API
+        const corsProxy = "https://corsproxy.io/?";
         const apiUrl = `https://n.showmsg.cn/view/${key}`;
         const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
           headers: {
@@ -137,21 +137,16 @@
           }
         });
 
-        // 前端直接解析HTML（替代后端代理的逻辑）
+        // 前端解析HTML，精准提取内容
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // 提取纸条内容（适配目标API的HTML结构）
-        let memoContent = '';
-        const contentSelectors = ['.memo-content', '.content', 'main', '.note-content', '#content'];
-        for (const selector of contentSelectors) {
-          const element = doc.querySelector(selector);
-          if (element) {
-            memoContent = element.textContent.trim();
-            break;
-          }
-        }
+        // 关键修改：使用精准的选择器匹配纸条内容标签
+        const contentElement = doc.querySelector('.whitespace-pre-wrap.text-slate-800.leading-relaxed');
+        let memoContent = contentElement ? contentElement.textContent.trim() : "";
+        
+        // 兜底提示
         if (!memoContent) {
           memoContent = "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
         }
