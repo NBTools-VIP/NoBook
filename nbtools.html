@@ -98,21 +98,24 @@
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
-    const JSONBIN_API = 'https://api.jsonbin.io/v3/b'; // JSONBIN接口
+    const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
+    // ========== 已替换为你的JSONBIN密钥 ==========
+    const JSONBIN_MASTER_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
+    // =============================================
 
     // 自动填充URL中的key和binId
-    let binId = ''; // JSONBIN的存储ID
+    let binId = '';
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const key = urlParams.get('key');
-      binId = urlParams.get('binId') || ''; // 从URL获取binId
+      binId = urlParams.get('binId') || '';
       if (key) {
         keyInput.value = key;
         getMemoContent();
       }
     };
 
-    /** 从JSONBIN读取内容 */
+    /** 从JSONBIN读取纸条内容 */
     async function getMemoContent() {
       const key = keyInput.value.trim();
       contentArea.className = '';
@@ -137,10 +140,10 @@
       submitBtn.disabled = true;
 
       try {
-        // 直接请求JSONBIN（支持跨域）
+        // 请求JSONBIN获取内容（支持跨域）
         const response = await fetch(`${JSONBIN_API}/${binId}`, {
           headers: {
-            'X-Master-Key': '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u',
+            'X-Master-Key': JSONBIN_MASTER_KEY,
             'Content-Type': 'application/json'
           }
         });
