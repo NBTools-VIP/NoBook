@@ -18,8 +18,14 @@
     }
     .create-time { color: #666; }
     .expire-time { color: #ff4444; /* 原版红色 */ }
-    /* 隐藏输入框和按钮 */
-    .input-group { display: none !important; }
+    /* 修复：用visibility隐藏（保留占位，避免布局塌陷），而非display:none */
+    .input-group { 
+      visibility: hidden; 
+      height: 0; 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden;
+    }
     #keyInput { flex: 1; height: 48px; padding: 0 15px; border: 1px solid #e1e5eb; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; }
     #keyInput:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,0.1); }
     #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
@@ -36,7 +42,7 @@
     <!-- 新增时间提示区，匹配原版布局 -->
     <div class="time-tips" id="timeTips">
       <div class="create-time">创建时间：</div>
-      <div class="expire-time">该页面将会在 小时 分钟后被销毁</div>
+      <div class="expire-time">该页面将会在小时分钟后被销毁</div>
     </div>
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
