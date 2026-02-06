@@ -98,10 +98,9 @@
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
+    // 修复1：JSONBIN v3版本需加 /latest 获取最新内容
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-    // ========== 已替换为你的JSONBIN密钥 ==========
     const JSONBIN_MASTER_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
-    // =============================================
 
     // 自动填充URL中的key和binId
     let binId = '';
@@ -115,7 +114,7 @@
       }
     };
 
-    /** 从JSONBIN读取纸条内容 */
+    /** 从JSONBIN读取纸条内容（修复接口路径+增加调试信息） */
     async function getMemoContent() {
       const key = keyInput.value.trim();
       contentArea.className = '';
@@ -140,15 +139,26 @@
       submitBtn.disabled = true;
 
       try {
-        // 请求JSONBIN获取内容（支持跨域）
-        const response = await fetch(`${JSONBIN_API}/${binId}`, {
+        // 修复2：补充 /latest 后缀，适配JSONBIN v3接口
+        const requestUrl = `${JSONBIN_API}/${binId}/latest`;
+        const response = await fetch(requestUrl, {
           headers: {
             'X-Master-Key': JSONBIN_MASTER_KEY,
             'Content-Type': 'application/json'
           }
         });
 
+        if (!response.ok) {
+          throw new Error(`JSONBIN请求失败，状态码：${response.status}`);
+        }
+
         const result = await response.json();
+        // 修复3：增加对JSONBIN返回结构的校验
+        if (!result || !result.record) {
+          throw new Error("JSONBIN返回数据格式异常");
+        }
+
+        // 获取对应密钥的内容
         const content = result.record[key] || "未找到纸条内容！可能原因：\n1. 提取密钥错误\n2. 纸条已过期\n3. 纸条已被删除";
         
         // 显示结果
