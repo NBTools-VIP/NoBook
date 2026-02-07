@@ -46,7 +46,8 @@
     #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
     #submitBtn:hover { background: #337ecc; }
     #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
-    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; margin-bottom: 20px; }
+    /* 核心修改1：将行间距从1.7改为1.5 */
+    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.5; color: #333; font-size: 15px; margin-bottom: 20px; text-align: left; }
     .error { color: #f56c6c; }
     .loading { color: #888; }
     /* Tips模块样式 - 优化排版 */
@@ -70,11 +71,17 @@
       border-bottom: 1px dashed #e6e9ed; /* 新增：添加底部虚线 */
       padding-bottom: 8px; /* 新增：文字和虚线之间的间距 */
     }
-    .nb-tips .url-group { margin: 12px 0; padding-left: 15px; }
+    .nb-tips .url-group { 
+      margin: 12px 0; 
+      padding-left: 0; /* 核心修改2：移除左内边距，实现左端对齐 */
+      text-align: left; /* 核心修改2：设置文本左对齐 */
+      display: inline-block; /* 核心修改2：让容器宽度适配内容，保持整体居中 */
+    }
     .nb-tips .url-item { 
       display: block; 
       margin: 6px 0; 
       word-break: break-all; /* 网址换行，避免溢出 */
+      text-align: left; /* 核心修改2：确保每个网址项左对齐 */
     }
     .nb-tips a {
       color: #0d6efd; 
@@ -119,11 +126,11 @@
       <div><a href="https://qr61.cn/oTZpGV/qHkc0V3" target="_blank">https://qr61.cn/oTZpGV/qHkc0V3</a></div>
       <div style="margin-top: 10px;">官方学科网址(物化左上角切换初高中)</div>
       <div class="url-group">
-        <span class="url-item">NB物理实验<a href="https://wl.nobook.com" target="_blank">https://wl.nobook.com</a></span>
-        <span class="url-item">NB化学实验<a href="https://hx.nobook.com" target="_blank">https://hx.nobook.com</a></span>
-        <span class="url-item">NB初中生物<a href="https://czsw.nobook.com" target="_blank">https://czsw.nobook.com</a></span>
-        <span class="url-item">NB高中生物<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span>
-        <span class="url-item">NB小学科学<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span>
+        <span class="url-item">NB物理实验:<a href="https://wl.nobook.com" target="_blank">https://wl.nobook.com</a></span>
+        <span class="url-item">NB化学实验:<a href="https://hx.nobook.com" target="_blank">https://hx.nobook.com</a></span>
+        <span class="url-item">NB初中生物:<a href="https://czsw.nobook.com" target="_blank">https://czsw.nobook.com</a></span>
+        <span class="url-item">NB高中生物:<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span>
+        <span class="url-item">NB小学科学:<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span>
       </div>
       <span class="emphasis">亲！请看字！请看字！请看字！</span>
     </div>
