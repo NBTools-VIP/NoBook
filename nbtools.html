@@ -55,12 +55,18 @@
       background: #fef0f0;
       border: 1px solid #fde2e2;
       border-radius: 8px;
-      padding: 20px;
+      /* 核心修改：减小内边距，最大化可用宽度 */
+      padding: 20px 15px;
       font-size: 15px;
-      line-height: 1.5; /* 减小行间距，从2改为1.5 */
+      line-height: 1.5;
       color: #721c24;
-      letter-spacing: 0.5px; /* 增加字间距，优化排版 */
-      text-align: center; /* 新增：让Tips内容整体居中 */
+      letter-spacing: 0.5px;
+      text-align: center;
+      /* 确保内容自动换行 */
+      word-wrap: break-word;
+      word-break: break-all;
+      /* 宽度自适应容器 */
+      width: 100%;
     }
     .nb-tips .emphasis { 
       color: #dc3545; 
@@ -76,21 +82,35 @@
       padding-left: 0; /* 核心修改2：移除左内边距，实现左端对齐 */
       text-align: left; /* 核心修改2：设置文本左对齐 */
       display: inline-block; /* 核心修改2：让容器宽度适配内容，保持整体居中 */
+      /* 新增：最大化网址容器宽度 */
+      width: 100%;
+      max-width: 400px;
     }
     .nb-tips .url-item { 
       display: block; 
       margin: 6px 0; 
-      word-break: break-all; /* 网址换行，避免溢出 */
+      /* 强制网址自动换行 */
+      word-break: break-all;
+      hyphens: auto;
       text-align: left; /* 核心修改2：确保每个网址项左对齐 */
     }
     .nb-tips a {
       color: #0d6efd; 
       text-decoration: none;
       transition: color 0.2s;
+      /* 链接也自动换行 */
+      word-break: break-all;
     }
     .nb-tips a:hover {
       color: #0a58ca;
       text-decoration: underline;
+    }
+    /* 确保Tips内的普通文本也充分利用宽度 */
+    .nb-tips > div {
+      width: 100%;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
