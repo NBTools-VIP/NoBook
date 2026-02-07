@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "PingFang SC", sans-serif; }
     body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .container { width: 100%; max-width: 550px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
+    .container { width: 100%; max-width: 500px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
     /* LOGO样式 - 圆形边框 */
     .nb-logo-wrapper {
       width: 120px;
@@ -56,10 +56,9 @@
       border-radius: 8px;
       padding: 20px;
       font-size: 15px;
-      line-height: 1.5; /* 减小行间距，从2改为1.5 */
+      line-height: 1.5; /* 优化行高，提升阅读性 */
       color: #721c24;
       letter-spacing: 0.5px; /* 增加字间距，优化排版 */
-      text-align: center; /* 新增：让Tips内容整体居中 */
     }
     .nb-tips .emphasis { 
       color: #dc3545; 
@@ -67,8 +66,6 @@
       font-size: 16px; /* 重点文字放大 */
       display: block; /* 独占一行，更醒目 */
       margin: 8px 0;
-      border-bottom: 1px dashed #e6e9ed; /* 新增：添加底部虚线 */
-      padding-bottom: 8px; /* 新增：文字和虚线之间的间距 */
     }
     .nb-tips .url-group { margin: 12px 0; padding-left: 15px; }
     .nb-tips .url-item { 
@@ -125,7 +122,7 @@
         <span class="url-item">·NB高中生物：<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span>
         <span class="url-item">·NB小学科学：<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span>
       </div>
-      <span class="emphasis">亲！请看字！请看字！请看字！</span>
+      <span class="emphasis">亲！请看字！请看字！请看字！请看字！请看字！</span>
     </div>
   </div>
   <script>
@@ -224,7 +221,7 @@
             <div class="expire-time">该页面将会在24小时0分钟后被销毁</div>
           `;
         } else {
-          memoContent = '账户正在获取中,请稍后！2分钟后再次刷新查看!';
+          memoContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
           timeTips.innerHTML = `
             <div class="create-time">创建时间：</div>
             <div class="expire-time">该页面将会在小时分钟后被销毁</div>
