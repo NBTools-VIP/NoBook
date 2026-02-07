@@ -3,13 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>私密纸条查看器</title>
+  <title>NoBook 账户查询</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "PingFang SC", sans-serif; }
     body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { width: 100%; max-width: 500px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
+    /* LOGO样式 - 圆形边框 */
+    .nb-logo-wrapper {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+      border-radius: 50%; /* 圆形核心属性 */
+      overflow: hidden; /* 裁剪超出圆形的部分 */
+      border: 1px solid #eee; /* 浅灰色边框，非红色 */
+    }
+    .nb-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 保证图片填充圆形且不变形 */
+      display: block;
+    }
     h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 10px; font-weight: 600; }
-    /* 新增时间提示区样式，匹配原版 */
+    /* 时间提示区样式 */
     .time-tips { 
       text-align: center; 
       font-size: 14px; 
@@ -17,8 +32,8 @@
       line-height: 1.6;
     }
     .create-time { color: #666; }
-    .expire-time { color: #ff4444; /* 原版红色 */ }
-    /* 修复：用visibility隐藏（保留占位，避免布局塌陷），而非display:none */
+    .expire-time { color: #ff4444; }
+    /* 修复：用visibility隐藏输入组 */
     .input-group { 
       visibility: hidden; 
       height: 0; 
@@ -31,69 +46,121 @@
     #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
     #submitBtn:hover { background: #337ecc; }
     #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
-    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; }
+    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.7; color: #333; font-size: 15px; margin-bottom: 20px; }
     .error { color: #f56c6c; }
     .loading { color: #888; }
+    /* Tips模块样式 - 优化排版 */
+    .nb-tips {
+      background: #fef0f0;
+      border: 1px solid #fde2e2;
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 15px;
+      line-height: 1.5; /* 减小行间距，从2改为1.5 */
+      color: #721c24;
+      letter-spacing: 0.5px; /* 增加字间距，优化排版 */
+      text-align: center; /* 新增：让Tips内容整体居中 */
+    }
+    .nb-tips .emphasis { 
+      color: #dc3545; 
+      font-weight: 700; 
+      font-size: 16px; /* 重点文字放大 */
+      display: block; /* 独占一行，更醒目 */
+      margin: 8px 0;
+      border-bottom: 1px dashed #e6e9ed; /* 新增：添加底部虚线 */
+      padding-bottom: 8px; /* 新增：文字和虚线之间的间距 */
+    }
+    .nb-tips .url-group { margin: 12px 0; padding-left: 15px; }
+    .nb-tips .url-item { 
+      display: block; 
+      margin: 6px 0; 
+      word-break: break-all; /* 网址换行，避免溢出 */
+    }
+    .nb-tips a {
+      color: #0d6efd; 
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nb-tips a:hover {
+      color: #0a58ca;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- LOGO - 圆形边框 -->
+    <div class="nb-logo-wrapper">
+      <img src="https://raw.githubusercontent.com/Willow-QQ/Icon/main/nbt.png" alt="NB实验室LOGO" class="nb-logo">
+    </div>
     <h1>NoBook 账户查询</h1>
-    <!-- 新增时间提示区，匹配原版布局 -->
+    <!-- 时间提示区 -->
     <div class="time-tips" id="timeTips">
       <div class="create-time">创建时间：</div>
       <div class="expire-time">该页面将会在小时分钟后被销毁</div>
     </div>
+
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
       <button id="submitBtn" onclick="getMemo()">确认查看</button>
     </div>
+    <!-- 内容区域 -->
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
+    
+    <!-- Tips模块 - 移至内容下方 -->
+    <div class="nb-tips">
+      <span class="emphasis">防失联【加+微信：NB_Helper】扫码下单</span>
+      <div>【NB实验室 NoBook 教师端】</div>
+      <div>支持 网页登录!电脑App客户端！</div>
+      <div>支持 电脑 希沃白板/Classin 绑定使用！</div>
+      <div>不支持 手机/平板 移动端App！</div>
+      <div>(手机/平板/学习机 只能网页登录!)</div>
+      <div style="margin-top: 10px;">图文使用教程:</div>
+      <div><a href="https://qr61.cn/oTZpGV/qHkc0V3" target="_blank">https://qr61.cn/oTZpGV/qHkc0V3</a></div>
+      <div style="margin-top: 10px;">官方学科网址(物/化 网页左上角切换 初/高中)</div>
+      <div class="url-group">
+        <span class="url-item">·NB物理实验：<a href="https://wl.nobook.com" target="_blank">https://wl.nobook.com</a></span>
+        <span class="url-item">·NB化学实验：<a href="https://hx.nobook.com" target="_blank">https://hx.nobook.com</a></span>
+        <span class="url-item">·NB初中生物：<a href="https://czsw.nobook.com" target="_blank">https://czsw.nobook.com</a></span>
+        <span class="url-item">·NB高中生物：<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span>
+        <span class="url-item">·NB小学科学：<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span>
+      </div>
+      <span class="emphasis">亲！请看字！请看字！请看字！请看字！请看字！</span>
+    </div>
   </div>
-
   <script>
     const keyInput = document.getElementById('keyInput');
     const submitBtn = document.getElementById('submitBtn');
     const contentArea = document.getElementById('contentArea');
-    const timeTips = document.getElementById('timeTips'); // 新增时间提示区DOM
+    const timeTips = document.getElementById('timeTips');
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
     const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
-
-    // 全局存储binId（后台隐藏，不显示在输入框）
     let binId = '';
-
-    // 解析短地址参数（c=key_binId）- 核心修复
+    // 解析短地址参数
     const params = new URLSearchParams(window.location.search);
     const cParam = params.get('c');
     if (cParam) {
       const [parseKey, parseBinId] = cParam.split('_');
-      // 仅将4位密钥填充到输入框
       if (parseKey && parseKey.length === 4) {
         keyInput.value = parseKey;
       }
-      // binId后台存储，不显示
       if (parseBinId) {
         binId = parseBinId;
       }
-      // 自动查询内容
       getMemo();
     }
-
-    // 计算剩余时间（原版表述：xx小时xx分钟后销毁）
+    // 计算剩余时间
     function calculateRemainingTime(expiredAt) {
       if (!expiredAt) return { hours: 0, minutes: 0 };
       const expireTime = new Date(expiredAt).getTime();
       const now = new Date().getTime();
       const diff = expireTime - now;
-      
-      if (diff <= 0) return { hours: 0, minutes: 0 }; // 已过期
-      
+      if (diff <= 0) return { hours: 0, minutes: 0 };
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       return { hours, minutes };
     }
-
-    // 格式化创建时间（原版样式：YYYY-MM-DD HH:mm:ss）
+    // 格式化创建时间
     function formatCreateTime(isoTime) {
       if (!isoTime) return '未知';
       const date = new Date(isoTime);
@@ -105,50 +172,37 @@
       const seconds = String(date.getSeconds()).padStart(2, '0');
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
-
-    // 更新时间提示区（移除多余空格，匹配原版样式）
+    // 更新时间提示区
     function updateTimeTips(createdAt, expiredAt) {
       const createTimeText = formatCreateTime(createdAt);
       const { hours, minutes } = calculateRemainingTime(expiredAt);
-      
-      // 核心修改：移除"在"和"小时"/"分钟"前的空格
       timeTips.innerHTML = `
         <div class="create-time">创建时间：${createTimeText}</div>
         <div class="expire-time">该页面将会在${hours}小时${minutes}分钟后被销毁</div>
       `;
     }
-
     // 获取纸条内容
     async function getMemo() {
       const inputKey = keyInput.value.trim();
       contentArea.className = '';
-
-      // 校验4位密钥
       if (inputKey.length !== 4) {
         contentArea.className = 'error';
         contentArea.textContent = '请输入4位提取密钥！';
         return;
       }
-
-      // 无binId则提示跳转原站
       if (!binId) {
         contentArea.className = 'error';
         contentArea.textContent = `请访问原站查看：\nhttps://n.showmsg.cn/view/${inputKey}`;
         return;
       }
-
-      // 加载状态
       contentArea.className = 'loading';
       contentArea.textContent = '正在查询纸条...';
       submitBtn.disabled = true;
-      // 重置时间提示区为加载状态（同步移除空格）
       timeTips.innerHTML = `
         <div class="create-time">创建时间：查询中...</div>
         <div class="expire-time">该页面将会在查询中...小时查询中...分钟后被销毁</div>
       `;
-
       try {
-        // 请求JSONBIN获取内容
         const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
           headers: { 
             'X-Master-Key': JSONBIN_KEY, 
@@ -156,40 +210,30 @@
             'X-Access-Key': JSONBIN_KEY
           }
         });
-        
         if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
         const data = await res.json();
-        
-        // 读取对应密钥的内容
         let memoContent = '';
         const memoData = data.record[inputKey];
         if (typeof memoData === 'object' && memoData.content) {
-          // 新格式 - 仅展示内容，时间移到标题区
           memoContent = memoData.content;
-          // 更新标题区时间提示（核心：匹配原版样式）
           updateTimeTips(memoData.created_at, memoData.expired_at);
         } else if (typeof memoData === 'string') {
-          // 旧格式（仅内容）- 时间提示区显示默认值（移除空格）
           memoContent = memoData;
           timeTips.innerHTML = `
             <div class="create-time">创建时间：未知</div>
             <div class="expire-time">该页面将会在24小时0分钟后被销毁</div>
           `;
         } else {
-          // 无数据
-          memoContent = '未找到纸条内容！\n1. 密钥错误 2. 纸条过期 3. 纸条已删除';
-          // 重置时间提示区（移除空格）
+          memoContent = '账户正在获取中,请稍后！2分钟后再次刷新查看!';
           timeTips.innerHTML = `
             <div class="create-time">创建时间：</div>
             <div class="expire-time">该页面将会在小时分钟后被销毁</div>
           `;
         }
         contentArea.textContent = memoContent;
-
       } catch (err) {
         contentArea.className = 'error';
         contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
-        // 错误时重置时间提示区（移除空格）
         timeTips.innerHTML = `
           <div class="create-time">创建时间：</div>
           <div class="expire-time">该页面将会在小时分钟后被销毁</div>
