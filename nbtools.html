@@ -126,7 +126,6 @@
       <div class="create-time">创建时间：</div>
       <div class="expire-time">该页面将会在小时分钟后被销毁</div>
     </div>
-
     <div class="input-group">
       <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
       <button id="submitBtn" onclick="getMemo()">确认查看</button>
@@ -137,10 +136,13 @@
     <!-- Tips模块 - 移至内容下方 -->
     <div class="nb-tips">
       <span class="emphasis">防失联【加+微信：NB_Helper】</span>
-      <div>【NB实验室 NoBook 教师端】</div>
-      <div>【支持】网页登录!电脑App客户端！</div>
-      <div>【支持】电脑 希沃白板/Classin 绑定使用！</div>
-      <div>【不支持】 手机/平板 移动端App！</div>
+      <!-- 核心修改：用url-group+url-item包裹，匹配网址行对齐方式 -->
+      <div class="url-group">
+        <span class="url-item">【NB实验室 NoBook 教师端】</span>
+        <span class="url-item">【支持】网页登录!电脑App客户端！</span>
+        <span class="url-item">【支持】电脑 希沃白板/Classin 绑定使用！</span>
+        <span class="url-item">【不支持】 手机/平板 移动端App！</span>
+      </div>
       <div>(手机/平板/学习机 只能网页登录!)</div>
       <div style="margin-top: 10px;">图文使用教程:</div>
       <div><a href="https://qr61.cn/oTZpGV/qHkc0V3" target="_blank">https://qr61.cn/oTZpGV/qHkc0V3</a></div>
