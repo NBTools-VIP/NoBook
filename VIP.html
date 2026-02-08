@@ -1,1 +1,319 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NoBook 账户查询</title><style>*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑","PingFang SC",sans-serif}body{min-height:100vh;background:#f5f7fa;display:flex;justify-content:center;align-items:center;padding:20px}.x1{width:100%;max-width:550px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.05);padding:35px 25px}.x2{width:120px;height:120px;margin:0 auto 20px;border-radius:50%;overflow:hidden;border:1px solid #eee}.x3{width:100%;height:100%;object-fit:cover;display:block}h1{text-align:center;color:#2c3e50;font-size:22px;margin-bottom:10px;font-weight:600}.x4{text-align:center;font-size:14px;margin-bottom:20px;line-height:1.6}.x5{color:#666}.x6{color:#f44}.x7{visibility:hidden;height:0;margin:0;padding:0;overflow:hidden}#y1{flex:1;height:48px;padding:0 15px;border:1px solid #e1e5eb;border-radius:8px;font-size:16px;outline:none;transition:border .3s}#y1:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.1)}#y2{height:48px;padding:0 20px;background:#409eff;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;transition:background .3s}#y2:hover{background:#337ecc}#y2:disabled{background:#b3d4fc;cursor:not-allowed}#y3{min-height:120px;padding:18px;border-radius:8px;background:#f8fafc;border:1px solid #e1e5eb;white-space:pre-wrap;line-height:1.5;color:#333;font-size:15px;margin-bottom:20px;text-align:left}.z1{color:#f56c6c}.z2{color:#888}.x8{background:#fef0f0;border:1px solid #fde2e2;border-radius:8px;padding:20px 15px;font-size:15px;line-height:1.5;color:#721c24;letter-spacing:.5px;text-align:center;word-wrap:break-word;word-break:break-all;width:100%}.x9{color:#dc3545;font-weight:700;font-size:16px;display:block;margin:8px 0;border-bottom:1px dashed #e6e9ed;padding-bottom:8px}.x10{margin:12px 0;padding-left:0;text-align:left;display:inline-block;width:100%;max-width:400px}.x11{display:block;margin:5px 0;word-break:break-all;hyphens:auto;text-align:left}.x8 a{color:#0d6efd;text-decoration:none;transition:color .2s;word-break:break-all}.x8 a:hover{color:#0a58ca;text-decoration:underline}.x8>div{width:100%;max-width:450px;margin-left:auto;margin-right:auto}@keyframes a1{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}.x12{display:inline-block;margin-left:5px}.x12 span{display:inline-block;animation:a1 .8s infinite alternate ease-in-out;font-weight:700;color:#dc3545}.x12 span:nth-child(1){animation-delay:0s}.x12 span:nth-child(2){animation-delay:.2s}.x12 span:nth-child(3){animation-delay:.4s}.x12 span:nth-child(4){animation-delay:.6s}</style></head><body><div class="x1"><div class="x2"><img src="https://i.imgs.ovh/2026/02/08/ylgvLU.png" alt="NB实验室LOGO" class="x3"></div><h1>NoBook 账户查询</h1><div class="x4" id="x4"><div class="x5">创建时间：</div><div class="x6">该页面将会在小时分钟后被销毁</div></div><div class="x7"><input type="text" id="y1" placeholder="请输入4位提取密钥"><button id="y2" onclick="qry()">确认查看</button></div><div id="y3" class="z2">请输入密钥并点击查看</div><div class="x8"><span class="x9" style="display:flex;align-items:center;justify-content:center;gap:8px;"><div style="text-align:center;"><div>防失联【加+微信：NB_Helper】</div><div style="font-size:14px;font-weight:normal;color:#721c24;margin-top:4px;">需要学生端 App 可微信咨询</div></div><img src="https://i.imgs.ovh/2026/02/08/ylpQTL.jpeg" style="width:50px;height:50px;border-radius:4px;"></span><div class="x10"><span class="x11">【NB实验室 NoBook 教师端】</span><span class="x11">·支持 网页登录!电脑App客户端！</span><span class="x11">·支持 电脑希沃白板/Classin 绑定使用！</span><span class="x11">·不支持 手机/平板 移动端App！</span><span class="x11"> (手机/平板/学习机 只能网页登录!)</span><span class="x11" style="margin-top:10px;">·图文使用教程: 点击 &gt;<a href="https://NBTools-VIP.github.io/NoBook/Tips.html" target="_blank" class="x12"><span>T</span><span>i</span><span>p</span><span>s</span></a></span><span class="x11" style="margin-top:10px;">·官方学科网址:</span><span class="x11">NB物理实验:<a href="https://wl.nobook.com" target="_blank">https://wl.nobook.com</a></span><span class="x11">NB化学实验:<a href="https://hx.nobook.com" target="_blank">https://hx.nobook.com</a></span><span class="x11">NB初中生物:<a href="https://czsw.nobook.com" target="_blank">https://czsw.nobook.com</a></span><span class="x11">NB高中生物:<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span><span class="x11">NB小学科学:<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span></div><span class="x9">亲！请看字！请看字！请看字！</span></div></div><script>const API=atob("aHR0cHM6Ly9hcGkuanNvbmJpbi5pby92My9i");const KEY=atob("JDJhJDEwJHBrL3BqOVZHL255a2dIb1FkQkxlei5kL2VEWU9nMERmTFlyNHhUVm9wNzNtQ2w0YXV1QTN1");let binId="",key="";// 强兼容你的链接参数解析function parseParam(){const search=window.location.search;if(!search)return;const params=new URLSearchParams(search);const c=params.get("c")||"";if(c&&c.includes("_")){const arr=c.split("_");if(arr.length===2){key=arr[0].trim();binId=arr[1].trim();document.getElementById("y1").value=key;}}}// 时间计算function calcTime(t){if(!t)return{h:0,m:0};const e=new Date(t).getTime(),n=new Date().getTime(),d=e-n;if(d<=0)return{h:0,m:0};const h=Math.floor(d/(1000*60*60)),m=Math.floor((d%(1000*60*60))/(1000*60));return{h,m};}function fmtTime(t){if(!t)return"未知";const d=new Date(t);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;}function upTime(ct,et){const t=fmtTime(ct),{h,m}=calcTime(et);document.getElementById("x4").innerHTML=`<div class="x5">创建时间：${t}</div><div class="x6">该页面将会在${h}小时${m}分钟后被销毁</div>`;}// 核心查询函数async function qry(){const $k=document.getElementById("y1"),$c=document.getElementById("y3"),$b=document.getElementById("y2");const inputKey=$k.value.trim();$c.className="";if(!binId){$c.className="z1";$c.textContent="未获取到有效查询ID，请检查链接！";return;}if(inputKey.length!==4){$c.className="z1";$c.textContent="请输入4位提取密钥！";return;}$c.className="z2";$c.textContent="正在查询纸条...";$b.disabled=true;document.getElementById("x4").innerHTML='<div class="x5">创建时间：查询中...</div><div class="x6">该页面将会在查询中...小时查询中...分钟后被销毁</div>';try{ res=await fetch(`${API}/${binId}/latest`,{method:"GET",headers:{"X-Master-Key":KEY,"Content-Type":"application/json;charset=utf-8"}});if(!res.ok)throw new Error(`接口返回${res.status}`);const data=await res.json();const memo=data.record[inputKey];let content="";if(typeof memo==="object"&&memo.content){content=memo.content;upTime(memo.created_at,memo.expired_at);}else if(typeof memo==="string"){content=memo;upTime(null,new Date(Date.now()+86400000));}else{content="账户正在获取中,请稍后！2分钟后再次刷新查看!";}$c.textContent=content;}catch(e){$c.className="z1";$c.textContent=`查询失败：${e.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;}finally{$b.disabled=false;}}document.addEventListener("DOMContentLoaded",()=>{parseParam();if(binId&&key)setTimeout(qry,200);});</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoBook 账户查询</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "PingFang SC", sans-serif; }
+    body { min-height: 100vh; background: #f5f7fa; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 550px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 35px 25px; }
+    /* LOGO样式 - 圆形边框 */
+    .nb-logo-wrapper {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+      border-radius: 50%; /* 圆形核心属性 */
+      overflow: hidden; /* 裁剪超出圆形的部分 */
+      border: 1px solid #eee; /* 浅灰色边框，非红色 */
+    }
+    .nb-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 保证图片填充圆形且不变形 */
+      display: block;
+    }
+    h1 { text-align: center; color: #2c3e50; font-size: 22px; margin-bottom: 10px; font-weight: 600; }
+    /* 时间提示区样式 */
+    .time-tips { 
+      text-align: center; 
+      font-size: 14px; 
+      margin-bottom: 20px; 
+      line-height: 1.6;
+    }
+    .create-time { color: #666; }
+    .expire-time { color: #ff4444; }
+    /* 修复：用visibility隐藏输入组 */
+    .input-group { 
+      visibility: hidden; 
+      height: 0; 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden;
+    }
+    #keyInput { flex: 1; height: 48px; padding: 0 15px; border: 1px solid #e1e5eb; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; }
+    #keyInput:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,0.1); }
+    #submitBtn { height: 48px; padding: 0 20px; background: #409eff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+    #submitBtn:hover { background: #337ecc; }
+    #submitBtn:disabled { background: #b3d4fc; cursor: not-allowed; }
+    /* 核心修改1：将行间距从1.7改为1.5 */
+    #contentArea { min-height: 120px; padding: 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e1e5eb; white-space: pre-wrap; line-height: 1.5; color: #333; font-size: 15px; margin-bottom: 20px; text-align: left; }
+    .error { color: #f56c6c; }
+    .loading { color: #888; }
+    /* Tips模块样式 - 优化排版 */
+    .nb-tips {
+      background: #fef0f0;
+      border: 1px solid #fde2e2;
+      border-radius: 8px;
+      /* 核心修改：减小内边距，最大化可用宽度 */
+      padding: 20px 15px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #721c24;
+      letter-spacing: 0.5px;
+      text-align: center;
+      /* 确保内容自动换行 */
+      word-wrap: break-word;
+      word-break: break-all;
+      /* 宽度自适应容器 */
+      width: 100%;
+    }
+    .nb-tips .emphasis { 
+      color: #dc3545; 
+      font-weight: 700; 
+      font-size: 16px; /* 重点文字放大 */
+      display: block; /* 独占一行，更醒目 */
+      margin: 8px 0;
+      border-bottom: 1px dashed #e6e9ed; /* 新增：添加底部虚线 */
+      padding-bottom: 8px; /* 新增：文字和虚线之间的间距 */
+    }
+    .nb-tips .url-group { 
+      margin: 12px 0; 
+      padding-left: 0; /* 核心修改2：移除左内边距，实现左端对齐 */
+      text-align: left; /* 核心修改2：设置文本左对齐 */
+      display: inline-block; /* 核心修改2：让容器宽度适配内容，保持整体居中 */
+      /* 新增：最大化网址容器宽度 */
+      width: 100%;
+      max-width: 400px;
+    }
+    .nb-tips .url-item { 
+      display: block; 
+      margin: 5px 0; 
+      /* 强制网址自动换行 */
+      word-break: break-all;
+      hyphens: auto;
+      text-align: left; /* 核心修改2：确保每个网址项左对齐 */
+    }
+    .nb-tips a {
+      color: #0d6efd; 
+      text-decoration: none;
+      transition: color 0.2s;
+      /* 链接也自动换行 */
+      word-break: break-all;
+    }
+    .nb-tips a:hover {
+      color: #0a58ca;
+      text-decoration: underline;
+    }
+    /* 确保Tips内的普通文本也充分利用宽度 */
+    .nb-tips > div {
+      width: 100%;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    /* ========== 新增：Tips字母跳动动画 ========== */
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.jump-text {
+  display: inline-block;
+  margin-left: 5px;
+}
+.jump-text span {
+  display: inline-block;
+  animation: jump 0.8s infinite alternate ease-in-out;
+  font-weight: 700;
+  color: #dc3545;
+}
+.jump-text span:nth-child(1) { animation-delay: 0s; }
+.jump-text span:nth-child(2) { animation-delay: 0.2s; }
+.jump-text span:nth-child(3) { animation-delay: 0.4s; }
+.jump-text span:nth-child(4) { animation-delay: 0.6s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LOGO - 圆形边框 -->
+    <div class="nb-logo-wrapper">
+      <img src="https://i.imgs.ovh/2026/02/08/ylgvLU.png" alt="NB实验室LOGO" class="nb-logo">
+    </div>
+    <h1>NoBook 账户查询</h1>
+    <!-- 时间提示区 -->
+    <div class="time-tips" id="timeTips">
+      <div class="create-time">创建时间：</div>
+      <div class="expire-time">该页面将会在小时分钟后被销毁</div>
+    </div>
+    <div class="input-group">
+      <input type="text" id="keyInput" placeholder="请输入4位提取密钥">
+      <button id="submitBtn" onclick="getMemo()">确认查看</button>
+    </div>
+    <!-- 内容区域 -->
+    <div id="contentArea" class="loading">请输入密钥并点击查看</div>
+    
+    <!-- Tips模块 - 移至内容下方（已添加二维码） -->
+    <div class="nb-tips">
+      <span class="emphasis" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <!-- 文字部分：两行堆叠且居中对齐 -->
+        <div style="text-align: center;">
+          <div>防失联【加+微信：NB_Helper】</div>
+          <div style="font-size: 14px; font-weight: normal; color: #721c24; margin-top: 4px;">需要学生端 App 可微信咨询</div>
+        </div>
+        <!-- 二维码图片 - 尺寸40x40，放在文字右侧 -->
+        <img src="https://i.imgs.ovh/2026/02/08/ylpQTL.jpeg" style="width:50px; height:50px; border-radius:4px;">
+      </span>
+      <!-- 核心修改：将原独立div统一包裹在url-group中，用url-item实现统一左对齐 -->
+      <div class="url-group">
+        <span class="url-item">【NB实验室 NoBook 教师端】</span>
+        <span class="url-item">·支持 网页登录!电脑App客户端！</span>
+        <span class="url-item">·支持 电脑希沃白板/Classin 绑定使用！</span>
+        <span class="url-item">·不支持 手机/平板 移动端App！</span>
+        <span class="url-item"> (手机/平板/学习机 只能网页登录!)</span>
+        <span class="url-item" style="margin-top: 10px;">·图文使用教程: 点击 >
+          <!-- ========== 核心修改：跳动的Tips超链接（同步新域名） ========== -->
+          <a href="https://NBTools-VIP.github.io/NoBook/Tips.html" target="_blank" class="jump-text">
+            <span>T</span><span>i</span><span>p</span><span>s</span>
+          </a>
+        </span>
+        <span class="url-item" style="margin-top: 10px;">·官方学科网址:</span>
+        <span class="url-item">NB物理实验:<a href="https://wl.nobook.com" target="_blank">https://wl.nobook.com</a></span>
+        <span class="url-item">NB化学实验:<a href="https://hx.nobook.com" target="_blank">https://hx.nobook.com</a></span>
+        <span class="url-item">NB初中生物:<a href="https://czsw.nobook.com" target="_blank">https://czsw.nobook.com</a></span>
+        <span class="url-item">NB高中生物:<a href="https://gzsw.nobook.com" target="_blank">https://gzsw.nobook.com</a></span>
+        <span class="url-item">NB小学科学:<a href="https://science.nobook.com" target="_blank">https://science.nobook.com</a></span>
+      </div>
+      <span class="emphasis">亲！请看字！请看字！请看字！</span>
+    </div>
+  </div>
+  <script>
+    const keyInput = document.getElementById('keyInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const contentArea = document.getElementById('contentArea');
+    const timeTips = document.getElementById('timeTips');
+    const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
+    const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
+    let binId = '';
+
+    // 【核心修复1：DOM加载完成后再解析参数，避免元素未渲染导致赋值失败】
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const cParam = params.get('c') || '';
+      // 严格校验参数格式（必须包含_，且分割后有2个有效值）
+      if (cParam.includes('_')) {
+        const [parseKey, parseBinId] = cParam.split('_');
+        if (parseKey && parseKey.length === 4 && parseBinId) {
+          keyInput.value = parseKey;
+          binId = parseBinId;
+          // 延迟100ms执行，确保所有DOM就绪
+          setTimeout(() => getMemo(), 100);
+        }
+      }
+    });
+
+    // 计算剩余时间
+    function calculateRemainingTime(expiredAt) {
+      if (!expiredAt) return { hours: 0, minutes: 0 };
+      const expireTime = new Date(expiredAt).getTime();
+      const now = new Date().getTime();
+      const diff = expireTime - now;
+      if (diff <= 0) return { hours: 0, minutes: 0 };
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      return { hours, minutes };
+    }
+
+    // 格式化创建时间
+    function formatCreateTime(isoTime) {
+      if (!isoTime) return '未知';
+      const date = new Date(isoTime);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 更新时间提示区
+    function updateTimeTips(createdAt, expiredAt) {
+      const createTimeText = formatCreateTime(createdAt);
+      const { hours, minutes } = calculateRemainingTime(expiredAt);
+      timeTips.innerHTML = `
+        <div class="create-time">创建时间：${createTimeText}</div>
+        <div class="expire-time">该页面将会在${hours}小时${minutes}分钟后被销毁</div>
+      `;
+    }
+
+    // 获取纸条内容
+    async function getMemo() {
+      const inputKey = keyInput.value.trim();
+      contentArea.className = '';
+
+      // 【核心修复2：补充binId容错校验，参数无效时明确提示】
+      if (!binId) {
+        contentArea.className = 'error';
+        contentArea.textContent = '未获取到有效查询参数，请检查链接是否正确！';
+        return;
+      }
+
+      if (inputKey.length !== 4) {
+        contentArea.className = 'error';
+        contentArea.textContent = '请输入4位提取密钥！';
+        return;
+      }
+
+      contentArea.className = 'loading';
+      contentArea.textContent = '正在查询纸条...';
+      submitBtn.disabled = true;
+      timeTips.innerHTML = `
+        <div class="create-time">创建时间：查询中...</div>
+        <div class="expire-time">该页面将会在查询中...小时查询中...分钟后被销毁</div>
+      `;
+
+      try {
+        // 【核心修复3：移除冗余的X-Access-Key，避免JSONBIN接口拦截】
+        const res = await fetch(`${JSONBIN_API}/${binId}/latest`, {
+          headers: { 
+            'X-Master-Key': JSONBIN_KEY, 
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) throw new Error(`请求失败（状态码：${res.status}）`);
+        const data = await res.json();
+        let memoContent = '';
+        const memoData = data.record[inputKey];
+
+        if (typeof memoData === 'object' && memoData.content) {
+          memoContent = memoData.content;
+          updateTimeTips(memoData.created_at, memoData.expired_at);
+        } else if (typeof memoData === 'string') {
+          memoContent = memoData;
+          timeTips.innerHTML = `
+            <div class="create-time">创建时间：未知</div>
+            <div class="expire-time">该页面将会在24小时0分钟后被销毁</div>
+          `;
+        } else {
+          memoContent = '账户正在获取中,请稍后！2分钟后再次刷新查看!';
+          timeTips.innerHTML = `
+            <div class="create-time">创建时间：</div>
+            <div class="expire-time">该页面将会在小时分钟后被销毁</div>
+          `;
+        }
+        contentArea.textContent = memoContent;
+      } catch (err) {
+        contentArea.className = 'error';
+        contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
+        timeTips.innerHTML = `
+          <div class="create-time">创建时间：</div>
+          <div class="expire-time">该页面将会在小时分钟后被销毁</div>
+        `;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
