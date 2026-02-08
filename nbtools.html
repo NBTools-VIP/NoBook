@@ -133,9 +133,12 @@
     <!-- 内容区域 -->
     <div id="contentArea" class="loading">请输入密钥并点击查看</div>
     
-    <!-- Tips模块 - 移至内容下方 -->
+    <!-- Tips模块 - 移至内容下方（已添加二维码） -->
     <div class="nb-tips">
-      <span class="emphasis">防失联【加+微信：NB_Helper】</span>
+      <span class="emphasis">防失联【加+微信：NB_Helper】
+        <!-- 二维码图片 - 尺寸40x40，居中对齐，间距8px -->
+        <img src="https://i.imgs.ovh/2026/02/08/ylpQTL.jpeg" style="width:40px; height:40px; vertical-align:middle; margin-left:8px; border-radius:4px;">
+      </span>
       <!-- 核心修改：将原独立div统一包裹在url-group中，用url-item实现统一左对齐 -->
       <div class="url-group">
         <span class="url-item">【NB实验室 NoBook 教师端】</span>
@@ -219,7 +222,7 @@
       }
       if (!binId) {
         contentArea.className = 'error';
-        contentArea.textContent = `请访问原站查看：\nhttps://n.showmsg.cn/view/${inputKey}`;
+        contentArea.textContent = `请访问原站查看：\\nhttps://n.showmsg.cn/view/${inputKey}`;
         return;
       }
       contentArea.className = 'loading';
@@ -260,7 +263,7 @@
         contentArea.textContent = memoContent;
       } catch (err) {
         contentArea.className = 'error';
-        contentArea.textContent = `请求失败：${err.message}\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
+        contentArea.textContent = `请求失败：${err.message}\\n可访问原站：https://n.showmsg.cn/view/${inputKey}`;
         timeTips.innerHTML = `
           <div class="create-time">创建时间：</div>
           <div class="expire-time">该页面将会在小时分钟后被销毁</div>
