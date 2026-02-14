@@ -1,0 +1,49 @@
+name: 自动部署页面&密钥注入
+on:
+  # 推送到main分支时自动执行
+  push:
+    branches: [ main ]
+  # 支持手动触发部署
+  workflow_dispatch:
+
+# 设置GITHUB_TOKEN的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 仅允许一个并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取仓库代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 核心：把Secrets里的密钥替换到HTML代码中
+      - name: 注入加密密钥
+        run: |
+          sed -i "s/{{JSONBIN_KEY}}/${{ secrets.JSONBIN_KEY }}/g" index.html
+
+      # 3. 配置GitHub Pages
+      - name: 设置Pages
+        uses: actions/configure-pages@v5
+
+      # 4. 打包构建产物
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+      # 5. 自动部署到GitHub Pages
+      - name: 部署到Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
