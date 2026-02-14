@@ -69,7 +69,7 @@
       width: 100%;
     }
     .nb-tips .emphasis { 
-      color: #dc3545; 
+      color: #dc3345; 
       font-weight: 700; 
       font-size: 16px; /* 重点文字放大 */
       display: block; /* 独占一行，更醒目 */
@@ -192,7 +192,8 @@
     const contentArea = document.getElementById('contentArea');
     const timeTips = document.getElementById('timeTips');
     const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-    const JSONBIN_KEY = '$2a$10$pk/pj9VG/nykgHoQdBLez.d/eDYOg0DfLYr4xTVop73mCl4auuA3u';
+    // 【核心修改】占位符统一为 {{JSONBIN_KEY}}，变量名保持 JSONBIN_KEY 不变
+    const JSONBIN_KEY = '{{JSONBIN_KEY}}';
     let binId = '';
 
     // 【核心修复1：DOM加载完成后再解析参数，避免元素未渲染导致赋值失败】
